@@ -1,0 +1,53 @@
+
+flowchart LR
+    subgraph INTERNAL["MANG NOI BO BENH VIEN - ON PREMISES"]
+        direction LR
+
+        subgraph INGEST["INGESTION PIPELINE"]
+            direction LR
+            PDF["PDF Documents"] -->|Doc ingestion| Parser["DocumentParser"]
+            Parser -->|Extract text and page| Chunker["Chunker"]
+            Chunker -->|Chunks with metadata| Embed["EmbeddingService"]
+            Embed -->|Store vector and metadata| VS[("VectorStore")]
+
+            Meta["Metadata: document_id, page, allowed_role, version"]
+            Chunker -->|Attach metadata| Meta
+            Meta -->|Index metadata| VS
+        end
+
+        subgraph QUERY["QUERY PIPELINE"]
+            direction LR
+            Doctor["Doctor"] -->|HTTPS query with session| QO["QueryOrchestrator"]
+            QO -->|Validate authenticated session| AP["AccessPolicy"]
+            Session["Server-side Auth Session"] -->|Provide trusted role| AP
+            AP -->|Authorized identity and scope| Cache{"ResponseCache"}
+
+            Cache -->|Cache hit: authorized answer| QO
+            Cache -->|Cache miss: query and role filter| Embed
+
+            Embed -->|Query vector and ACL scope| Connector["VectorDBConnector"]
+            Connector -->|Filtered vector search| VS
+            VS -->|Permitted chunks only| Connector
+            Connector -->|Retrieved authorized context| PII["PIIRedactor"]
+            PII -->|Sanitized context| PB["PromptBuilder"]
+            PB -->|Prompt with source references| LLM["LocalLLM"]
+            LLM -->|Grounded answer and citations| QO
+            QO -->|Store role-scoped response| Cache
+            QO -->|HTTPS answer with citations| Doctor
+        end
+
+        Audit[("AuditLogger")]
+        AP -->|Log authorization decision| Audit
+        Connector -->|Log retrieval metadata| Audit
+        QO -->|Log query outcome| Audit
+    end
+
+    classDef storage fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef security fill:#dcfce7,stroke:#16a34a,color:#14532d
+    classDef ai fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef actor fill:#f3f4f6,stroke:#6b7280,color:#111827
+
+    class VS,Audit storage
+    class AP,PII,Cache security
+    class Embed,LLM ai
+    class Doctor,Session actor

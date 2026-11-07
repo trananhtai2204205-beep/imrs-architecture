@@ -1,0 +1,82 @@
+
+sequenceDiagram
+    autonumber
+
+    actor Doctor as Bac si
+    participant Q as QueryOrchestrator
+    participant A as AccessPolicy
+    participant C as ResponseCache
+    participant E as EmbeddingService
+    participant V as VectorDBConnector
+    participant DB as VectorStore
+    participant R as PIIRedactor
+    participant P as PromptBuilder
+    participant L as LocalLLM
+    participant G as AuditLogger
+
+    Doctor->>Q: HTTPS - Gui cau hoi
+    activate Q
+
+    Q->>A: Kiem tra session va quyen truy xuat
+    activate A
+    A-->>Q: Ket qua xac thuc va scope
+    deactivate A
+
+    alt Khong du quyen
+        Q->>G: Ghi su kien tu choi
+        G-->>Q: Da ghi nhan
+        Q-->>Doctor: HTTP 403 - Access denied
+
+    else Du quyen
+        Q->>C: Tim cache theo user, scope, phien ban
+        C-->>Q: Cache hit hoac miss
+
+        alt Cache hit va con hop le
+            Q->>G: Ghi su kien cache hit
+            G-->>Q: Da ghi nhan
+            Q-->>Doctor: Cau tra loi co trich dan
+
+        else Cache miss
+            Q->>E: Sinh vector cau hoi
+            activate E
+            E-->>Q: Query embedding
+            deactivate E
+
+            Q->>V: Tim top-k voi allowed_role
+            activate V
+            V->>DB: Vector search + permission filter
+            DB-->>V: Chunks va source metadata
+            V-->>Q: Chunks duoc phep truy xuat
+            deactivate V
+
+            alt Khong co tai lieu phu hop
+                Q->>G: Ghi su kien khong co ket qua
+                G-->>Q: Da ghi nhan
+                Q-->>Doctor: Khong tim thay nguon phu hop
+
+            else Co tai lieu phu hop
+                Q->>R: Xu ly PII trong ngu canh
+                R-->>Q: Context da xu ly
+
+                Q->>P: Tao prompt va thong tin nguon
+                P-->>Q: Prompt co trich dan
+
+                Q->>L: Goi LLM noi bo
+                activate L
+                L-->>Q: Cau tra loi du thao
+                deactivate L
+
+                Note over Q: Kiem tra trich dan va quyen
+
+                Q->>C: Luu cache theo scope hop le
+                C-->>Q: Da luu
+
+                Q->>G: Ghi audit khong chua PII
+                G-->>Q: Da ghi nhan
+
+                Q-->>Doctor: Cau tra loi kem trich dan
+            end
+        end
+    end
+
+    deactivate Q

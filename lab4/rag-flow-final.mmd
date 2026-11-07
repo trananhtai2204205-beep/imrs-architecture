@@ -1,0 +1,55 @@
+<CodeBlock language="mermaid" editable>
+flowchart TB
+
+
+subgraph ING["INGESTION - Nap tri thuc"]
+PDF["Tai lieu PDF noi bo"]
+DP["DocumentParser"]
+CK["Chunker"]
+IE["EmbeddingService"]
+META["Metadata: allowed_role, document_id, page"]
+VC["VectorDBConnector"]
+DB[("VectorStore noi bo")]
+
+PDF -->|"Doc PDF"| DP
+DP -->|"Trich xuat van ban"| CK
+CK -->|"Chia cac doan"| IE
+CK -->|"Metadata va noi dung"| META
+IE -->|"Vector embedding"| VC
+META -->|"Gan metadata"| VC
+VC -->|"Luu vector va metadata"| DB
+end
+
+subgraph QUERY["QUERY - Tra cuu phac do"]
+USER["Bac si"]
+QO["QueryOrchestrator"]
+AP["AccessPolicy"]
+CACHE["ResponseCache"]
+QE["EmbeddingService - Query"]
+QVC["VectorDBConnector - Query"]
+PII["PIIRedactor"]
+PB["PromptBuilder"]
+LLM["LocalLLM"]
+OUT["Cau tra loi co trich dan"]
+AUDIT["AuditLogger"]
+
+USER -->|"HTTPS - Gui cau hoi"| QO
+QO -->|"Kiem tra danh tinh va quyen"| AP
+AP -->|"Role va scope da xac thuc"| QO
+QO -->|"Tra cache theo pham vi quyen"| CACHE
+CACHE -->|"Cache hit hop le"| OUT
+CACHE -->|"Cache miss"| QE
+QE -->|"Vector cau hoi"| QVC
+QO -->|"Filter theo role tin cay"| QVC
+QVC -->|"Truy van top-k va allowed_role"| DB
+DB -->|"Tra chunks duoc phep"| QVC
+QVC -->|"Chunks va source metadata"| PII
+PII -->|"Ngu canh da xu ly PII"| PB
+PB -->|"Prompt va nguon trich dan"| LLM
+LLM -->|"Ban nhap cau tra loi"| QO
+QO -->|"Kiem tra trich dan"| OUT
+OUT -->|"HTTPS - Tra ket qua"| USER
+QO -->|"Ghi su kien truy van toi thieu"| AUDIT
+QO -->|"Luu ket qua theo scope quyen"| CACHE
+end
+</CodeBlock>

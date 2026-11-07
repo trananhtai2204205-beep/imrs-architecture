@@ -1,4 +1,63 @@
 
+# LAB 4 - RAG Architecture Design
+
+## 1. Architectural Drivers
+
+### 1.1. Bối cảnh
+
+Hệ thống IMRS bổ sung tính năng Trợ lý tra cứu
+phác đồ sử dụng kiến trúc RAG trên khoảng
+5.000 tài liệu PDF nội bộ.
+
+Hệ thống phải thực hiện tra cứu theo quyền
+người dùng và tạo câu trả lời có trích dẫn.
+
+Các ràng buộc:
+- Dữ liệu không rời mạng nội bộ bệnh viện.
+- 1 GPU RTX 4090.
+- Ngân sách 15.000 USD.
+- Thời hạn triển khai 4 tháng.
+
+### 1.2. Bảng Architectural Drivers
+
+| Mã | Nhóm | Mô tả | Liên quan ASR/ràng buộc Lab 1 | Mức ưu tiên | Nguồn |
+|---|---|---|---|---|---|
+| F01 | Chức năng | Tìm kiếm đoạn phác đồ liên quan | Yêu cầu tra cứu IMRS; cần đối chiếu Lab 1 | Cao | Chưa phân loại |
+| F02 | Chức năng | Trả lời có trích dẫn tài liệu nguồn | Yêu cầu chức năng Lab 4 | Cao | Chưa phân loại |
+| F03 | Chức năng | Nạp, trích xuất và chia đoạn PDF | Phân hệ RAG mới | Cao | Chưa phân loại |
+| Q01 | ASR | Đáp ứng yêu cầu TTFT | ASR hiệu năng Lab 1; chưa có ngưỡng cụ thể | Cao | Chưa phân loại |
+| Q02 | ASR | Phân quyền tài liệu theo vai trò | ASR bảo mật; cần đối chiếu Lab 1 | Rất cao | Chưa phân loại |
+| Q03 | ASR | Có khả năng thay thế mô hình embedding | ASR Modifiability; cần đối chiếu Lab 1 | Cao | Chưa phân loại |
+| Q04 | ASR | Kiểm soát thông tin PII | Ràng buộc bảo mật dữ liệu | Rất cao | Chưa phân loại |
+| C01 | Ràng buộc | Dữ liệu không rời mạng nội bộ | Ràng buộc Lab 1 | Rất cao | Chưa phân loại |
+| C02 | Ràng buộc | Hạ tầng có 1 GPU RTX 4090 | Ràng buộc hạ tầng Lab 1 | Cao | Chưa phân loại |
+| C03 | Ràng buộc | Ngân sách 15.000 USD | Ràng buộc ngân sách Lab 1 | Cao | Chưa phân loại |
+| C04 | Ràng buộc | Thời hạn 4 tháng | Ràng buộc tiến độ Lab 1 | Cao | Chưa phân loại |
+
+### 1.3. Nhận xét
+
+Các drivers được phân thành ba nhóm:
+yêu cầu chức năng, ASR và ràng buộc.
+
+Q01, Q02 và Q03 ảnh hưởng trực tiếp đến
+lựa chọn công nghệ và tổ chức các thành phần RAG.
+
+C01 yêu cầu embedding, VectorStore và LLM
+được triển khai hoàn toàn trong mạng nội bộ.
+
+### 1.4. Những nội dung cần đối chiếu Lab 1
+
+- Ngưỡng TTFT cụ thể.
+- ASR hiệu năng và bảo mật.
+- Công nghệ database hiện có.
+- Các thành phần kiến trúc từ Lab 2-3.
+
+### 1.5. Đánh giá đề xuất của AI
+
+Cần đối chiếu đầu ra AI ban đầu với báo cáo
+Lab 1 để xác định driver bị thiếu, bị diễn đạt
+sai hoặc được AI tự đề xuất không có căn cứ.
+
 ## 2. So sánh phương án kiến trúc RAG
 
 ### 2.1. D1 - Lựa chọn Vector Database

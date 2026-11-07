@@ -32,11 +32,11 @@ LLM để tổng hợp câu trả lời có trích dẫn.
 - Có khả năng thay thế mô hình embedding.
 - Có cơ chế xử lý thông tin PII.
 
-## 6. ASR từ Lab 1
-- TTFT: chưa có LAB1_REPORT.md để đối chiếu; không tự đặt con số.
-- Bảo mật: phân quyền theo vai trò và dữ liệu nội bộ theo đề Lab 4; ASR chi tiết Lab 1 chưa được đối chiếu.
-- Khả năng sửa đổi: cần hỗ trợ thay thế embedding theo Lab 4; ASR Lab 1 chưa được đối chiếu.
-- Các ASR khác: chưa được cung cấp từ Lab 1.
+## 6. Thuộc tính chất lượng và ràng buộc liên quan
+- Độ trễ: quan tâm đến TTFT; không tự đặt ngưỡng số.
+- Bảo mật: phân quyền tài liệu theo vai trò; dữ liệu không rời mạng nội bộ bệnh viện.
+- Khả năng sửa đổi: hỗ trợ thay thế mô hình embedding.
+- Giới hạn đầu vào: 1 GPU RTX 4090, ngân sách 15.000 USD, thời hạn 4 tháng.
 
 ## 7. Thành phần từ Lab 2-3
 - QueryOrchestrator
@@ -44,7 +44,7 @@ LLM để tổng hợp câu trả lời có trích dẫn.
 - VectorDBConnector
 - Chưa có báo cáo Lab 2-3 để xác minh tên thành phần.
 
-## 8. Giả định cần xác minh
+## 8. Giả định cần xác minh khi chọn thiết kế
 - PostgreSQL đã được triển khai hay chưa.
 - Công nghệ xác thực và phân quyền hiện có.
-- Ngưỡng TTFT và mức tải dự kiến.
+- Mức tải dự kiến và khả năng đáp ứng độ trễ thực tế.

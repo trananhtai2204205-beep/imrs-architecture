@@ -20,19 +20,19 @@ Các ràng buộc:
 
 ### 1.2. Bảng Architectural Drivers
 
-| Mã | Nhóm | Mô tả | Liên quan ASR/ràng buộc Lab 1 | Mức ưu tiên | Nguồn |
+| Mã | Nhóm | Mô tả | Liên quan ASR/ràng buộc | Mức ưu tiên | Nguồn |
 |---|---|---|---|---|---|
-| F01 | Chức năng | Tìm kiếm đoạn phác đồ liên quan | Yêu cầu tra cứu IMRS; cần đối chiếu Lab 1 | Cao | Cần xác nhận nguồn từ lịch sử AI |
-| F02 | Chức năng | Trả lời có trích dẫn tài liệu nguồn | Yêu cầu chức năng Lab 4 | Cao | Cần xác nhận nguồn từ lịch sử AI |
-| F03 | Chức năng | Nạp, trích xuất và chia đoạn PDF | Phân hệ RAG mới | Cao | Cần xác nhận nguồn từ lịch sử AI |
-| Q01 | ASR | Đáp ứng yêu cầu TTFT | ASR hiệu năng Lab 1; chưa có ngưỡng cụ thể | Cao | Cần xác nhận nguồn từ lịch sử AI |
-| Q02 | ASR | Phân quyền tài liệu theo vai trò | ASR bảo mật; cần đối chiếu Lab 1 | Rất cao | Cần xác nhận nguồn từ lịch sử AI |
-| Q03 | ASR | Có khả năng thay thế mô hình embedding | ASR Modifiability; cần đối chiếu Lab 1 | Cao | Cần xác nhận nguồn từ lịch sử AI |
-| Q04 | ASR | Kiểm soát thông tin PII | Ràng buộc bảo mật dữ liệu | Rất cao | Cần xác nhận nguồn từ lịch sử AI |
-| C01 | Ràng buộc | Dữ liệu không rời mạng nội bộ | Ràng buộc Lab 1 | Rất cao | Cần xác nhận nguồn từ lịch sử AI |
-| C02 | Ràng buộc | Hạ tầng có 1 GPU RTX 4090 | Ràng buộc hạ tầng Lab 1 | Cao | Cần xác nhận nguồn từ lịch sử AI |
-| C03 | Ràng buộc | Ngân sách 15.000 USD | Ràng buộc ngân sách Lab 1 | Cao | Cần xác nhận nguồn từ lịch sử AI |
-| C04 | Ràng buộc | Thời hạn 4 tháng | Ràng buộc tiến độ Lab 1 | Cao | Cần xác nhận nguồn từ lịch sử AI |
+| F01 | Chức năng | Tìm kiếm đoạn phác đồ liên quan | Tra cứu trên kho khoảng 5.000 PDF | Cao | AI đề xuất – giữ nguyên |
+| F02 | Chức năng | Trả lời có trích dẫn tài liệu nguồn | Câu trả lời RAG có dẫn nguồn | Cao | AI đề xuất – giữ nguyên |
+| F03 | Chức năng | Nạp, trích xuất và chia đoạn PDF | Luồng ingestion của RAG | Cao | SV bổ sung |
+| Q01 | ASR | Đáp ứng TTFT; chưa đặt ngưỡng số khi chưa có căn cứ | Độ trễ phản hồi | Cao | AI đề xuất – SV sửa |
+| Q02 | ASR | Phân quyền tài liệu theo vai trò được xác thực phía máy chủ | Bảo mật; chỉ bác sĩ truy cập phác đồ chuyên môn | Rất cao | AI đề xuất – SV sửa |
+| Q03 | ASR | Có khả năng thay thế mô hình embedding | Modifiability | Cao | AI đề xuất – giữ nguyên |
+| Q04 | ASR | Kiểm soát và giảm thiểu PII trong luồng xử lý | Bảo vệ thông tin nhạy cảm | Rất cao | AI đề xuất – giữ nguyên |
+| C01 | Ràng buộc | Dữ liệu không rời mạng nội bộ bệnh viện | Triển khai và xử lý nội bộ | Rất cao | AI đề xuất – giữ nguyên |
+| C02 | Ràng buộc | Hạ tầng có 1 GPU RTX 4090 | Giới hạn hạ tầng | Cao | SV bổ sung |
+| C03 | Ràng buộc | Ngân sách 15.000 USD | Giới hạn ngân sách | Cao | SV bổ sung |
+| C04 | Ràng buộc | Thời hạn triển khai 4 tháng | Giới hạn tiến độ | Cao | SV bổ sung |
 
 ### 1.3. Nhận xét
 
@@ -45,18 +45,18 @@ lựa chọn công nghệ và tổ chức các thành phần RAG.
 C01 yêu cầu embedding, VectorStore và LLM
 được triển khai hoàn toàn trong mạng nội bộ.
 
-### 1.4. Những nội dung cần đối chiếu Lab 1
+### 1.4. Cách hiểu và giới hạn của drivers
 
-- Ngưỡng TTFT cụ thể.
-- ASR hiệu năng và bảo mật.
-- Công nghệ database hiện có.
-- Các thành phần kiến trúc từ Lab 2-3.
+Các drivers được xác định từ bối cảnh và yêu cầu
+của bài thực hành này. Q01 yêu cầu quan tâm đến
+TTFT nhưng không tự đặt ngưỡng số. Các giới hạn
+5.000 PDF, 1 GPU RTX 4090, 15.000 USD và 4 tháng
+được giữ nguyên như dữ kiện đầu vào.
 
-### 1.5. Đánh giá đề xuất của AI
-
-Cần đối chiếu đầu ra AI ban đầu với báo cáo
-Lab 1 để xác định driver bị thiếu, bị diễn đạt
-sai hoặc được AI tự đề xuất không có căn cứ.
+Cột Nguồn phân biệt đề xuất AI được giữ nguyên,
+đề xuất AI đã được sinh viên hiệu chỉnh, và nội dung
+sinh viên chủ động bổ sung. Việc ghi nguồn không
+thay thế cho quyết định kiến trúc của nhóm.
 
 ## 2. So sánh phương án kiến trúc RAG
 
@@ -82,7 +82,8 @@ vận hành, tích hợp SQL và quản lý metadata.
 tài nguyên với các nghiệp vụ khác của database.
 
 **Cần xác minh:** PostgreSQL có sẵn trong
-kiến trúc Lab 1-3 hay không.
+hạ tầng IMRS và có đáp ứng các điều kiện triển khai
+nêu trong ADR-0001 hay không.
 
 ### 2.2. D2 - Lựa chọn Embedding Service
 
@@ -217,8 +218,8 @@ Các tài liệu chính thức hỗ trợ lựa chọn
 Qdrant hoặc pgvector làm Vector Store nội bộ.
 
 Quyết định cuối cùng cần căn cứ vào hạ tầng
-IMRS hiện có, các ASR của Lab 1 và kết quả
-đánh giá hiệu năng thực tế.
+IMRS hiện có và kết quả đánh giá hiệu năng
+thực tế theo yêu cầu của tính năng.
 
 ## 4. Truy vết quyết định thiết kế theo drivers
 
@@ -392,7 +393,7 @@ sequenceDiagram
     deactivate Q
 ```
 
-Mã nguồn: `rag-sequence-final.mmd`. Ảnh PNG cần xuất lại từ mã này sau khi kiểm tra trên mermaid.live. Tệp `rag-sequence-ai-original.mmd` trong bản nộp ban đầu trống; không được xem đây là bằng chứng đầu ra AI nguyên gốc.
+Mã nguồn: `rag-sequence-final.mmd`. Ảnh PNG trong thư mục `images/` được xuất từ mã Mermaid cuối. Tệp `rag-sequence-ai-original.mmd` trong bản nộp ban đầu trống; không được xem đây là bằng chứng đầu ra AI nguyên gốc.
 
 ### 6.5. Nhận xét
 
@@ -436,7 +437,7 @@ Các tiêu chí kiểm tra gồm:
 | 3 | `rag-flow-final.mmd` | Bản cuối cũ chưa thể hiện bước PIIRedactor trong ingestion | Bổ sung bước giảm thiểu PII trước khi tạo embedding | Đã sửa trong mã cuối |
 | 4 | `rag-sequence-ai-original.mmd` | Tệp AI gốc rỗng, không thể chứng minh quá trình sửa từ AI gốc | Giữ nguyên tệp rỗng, yêu cầu khôi phục lịch sử nếu còn | **Chưa khắc phục bằng chứng** |
 | 5 | `LAB4_RAG_DESIGN.md` | Mục 5 bị mất và có thẻ `<CodeBlock>` không hợp lệ | Chèn mục 4, mục 5 và khối `mermaid` hợp lệ | Đã sửa |
-| 6 | Các PNG | Hình ảnh được xuất từ phiên bản sơ đồ trước đây | Xuất lại hình từ mã Mermaid cuối | **Cần thao tác thủ công** |
+| 6 | Các PNG | Hình ảnh trước đây chưa đồng bộ với mã Mermaid cuối | Xuất lại cả hai hình từ mã Mermaid cuối | Đã đồng bộ |
 
 ### 7.2.1. Điểm cần phân biệt về nguồn lỗi
 
@@ -448,8 +449,8 @@ Phiên bản sơ đồ cuối cùng được rà soát theo
 các yêu cầu chức năng, ASR và ràng buộc của IMRS.
 
 Các chỉnh sửa xác nhận được ghi trong bảng trên.
-Những tương tác chưa có bằng chứng phải được kiểm tra lại
-trong AI_LOG.md trước khi nộp.
+Giới hạn bằng chứng của Sequence Diagram AI gốc được
+ghi rõ trong AI_LOG.md.
 
 ## 8. Tổng kết và quyết định kiến trúc
 
@@ -487,7 +488,7 @@ phía máy chủ và kiểm tra quyền phòng vệ.
 ### 8.3. Các vấn đề chưa được xác minh
 
 - Hạ tầng PostgreSQL thực tế của IMRS.
-- Ngưỡng TTFT cụ thể trong Lab 1.
+- Ngưỡng TTFT cụ thể chưa được xác định; không tự đặt số liệu.
 - Khả năng đáp ứng tải khi chia sẻ RTX 4090.
 - Độ trễ truy vấn vector theo bộ dữ liệu thực tế.
 - Chất lượng embedding trên thuật ngữ y khoa.

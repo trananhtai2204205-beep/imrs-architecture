@@ -39,12 +39,12 @@ Các ràng buộc quan trọng:
 - Thời gian triển khai 4 tháng.
 - Tài liệu phải được truy xuất theo quyền.
 - Cần hỗ trợ thay thế mô hình embedding.
-- Phải đáp ứng yêu cầu độ trễ từ Lab 1.
+- Cần đáp ứng yêu cầu độ trễ của tính năng tra cứu; không tự đặt ngưỡng khi chưa có số liệu.
 
 Các Architectural Drivers liên quan:
 - F01: Tìm kiếm tài liệu liên quan.
 - F02: Trả lời có trích dẫn nguồn.
-- Q01: Đáp ứng TTFT theo Lab 1.
+- Q01: Quan tâm đến TTFT; chưa đặt ngưỡng số.
 - Q02: Phân quyền truy xuất tài liệu.
 - Q03: Khả năng thay thế embedding.
 - C01: Dữ liệu không rời mạng nội bộ.
@@ -176,20 +176,20 @@ Phương án này không được lựa chọn trong
 
 - Rủi ro không đáp ứng TTFT:
   Thử nghiệm hiệu năng với bộ câu hỏi mẫu,
-  không tự đặt ngưỡng ngoài Lab 1.
+  không tự đặt ngưỡng khi chưa có số liệu.
 
 - Rủi ro phụ thuộc công nghệ:
   Giữ giao diện VectorDBConnector ổn định.
 
 ### Follow-up Actions
 
-1. Xác minh PostgreSQL trong Lab 1-3.
+1. Xác minh PostgreSQL hiện có trong hạ tầng IMRS.
 2. Kiểm tra phiên bản PostgreSQL và pgvector.
 3. Thử nghiệm truy vấn có lọc allowed_role.
 4. Đánh giá tài nguyên và độ trễ.
 5. Kiểm tra chính sách sao lưu và bảo mật.
-6. Chuyển ADR sang Accepted khi quyết định
-   được xác nhận theo tiêu chí của nhóm.
+6. Chuyển ADR sang Accepted khi nhóm xác nhận
+   các điều kiện lựa chọn đã được đáp ứng.
 
 ## References
 

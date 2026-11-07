@@ -1,53 +1,37 @@
 flowchart TB
+  subgraph ING["Ingestion - Nap tri thuc noi bo"]
+    PDF["PDF noi bo"] -->|"Doc tai lieu"| PARSER["DocumentParser"]
+    PARSER -->|"Van ban va so trang"| CHUNK["Chunker"]
+    CHUNK -->|"Doan van ban"| IPII["PIIRedactor - Ingestion"]
+    IPII -->|"Chunk da xu ly PII"| EMBI["EmbeddingService"]
+    CHUNK -->|"document_id, page, allowed_role, version"| META["Metadata da kiem tra quyen"]
+    EMBI -->|"Vector"| WRITE["VectorDBConnector"]
+    IPII -->|"Noi dung chunk"| WRITE
+    META -->|"Metadata"| WRITE
+    WRITE -->|"SQL/REST - Luu chi muc"| STORE[("VectorStore noi bo")]
+  end
 
-
-subgraph ING["INGESTION - Nap tri thuc"]
-PDF["Tai lieu PDF noi bo"]
-DP["DocumentParser"]
-CK["Chunker"]
-IE["EmbeddingService"]
-META["Metadata: allowed_role, document_id, page"]
-VC["VectorDBConnector"]
-DB[("VectorStore noi bo")]
-
-PDF -->|"Doc PDF"| DP
-DP -->|"Trich xuat van ban"| CK
-CK -->|"Chia cac doan"| IE
-CK -->|"Metadata va noi dung"| META
-IE -->|"Vector embedding"| VC
-META -->|"Gan metadata"| VC
-VC -->|"Luu vector va metadata"| DB
-end
-
-subgraph QUERY["QUERY - Tra cuu phac do"]
-USER["Bac si"]
-QO["QueryOrchestrator"]
-AP["AccessPolicy"]
-CACHE["ResponseCache"]
-QE["EmbeddingService - Query"]
-QVC["VectorDBConnector - Query"]
-PII["PIIRedactor"]
-PB["PromptBuilder"]
-LLM["LocalLLM"]
-OUT["Cau tra loi co trich dan"]
-AUDIT["AuditLogger"]
-
-USER -->|"HTTPS - Gui cau hoi"| QO
-QO -->|"Kiem tra danh tinh va quyen"| AP
-AP -->|"Role va scope da xac thuc"| QO
-QO -->|"Tra cache theo pham vi quyen"| CACHE
-CACHE -->|"Cache hit hop le"| OUT
-CACHE -->|"Cache miss"| QE
-QE -->|"Vector cau hoi"| QVC
-QO -->|"Filter theo role tin cay"| QVC
-QVC -->|"Truy van top-k va allowed_role"| DB
-DB -->|"Tra chunks duoc phep"| QVC
-QVC -->|"Chunks va source metadata"| PII
-PII -->|"Ngu canh da xu ly PII"| PB
-PB -->|"Prompt va nguon trich dan"| LLM
-LLM -->|"Ban nhap cau tra loi"| QO
-QO -->|"Kiem tra trich dan"| OUT
-OUT -->|"HTTPS - Tra ket qua"| USER
-QO -->|"Ghi su kien truy van toi thieu"| AUDIT
-QO -->|"Luu ket qua theo scope quyen"| CACHE
-end
+  subgraph QUERY["Query - Hoi dap co phan quyen"]
+    DOCTOR["Doctor"] -->|"HTTPS - Cau hoi"| ORCH["QueryOrchestrator"]
+    ORCH -->|"Kiem tra session phia may chu"| AUTH["AccessPolicy"]
+    AUTH -->|"Tu choi"| DENIED["HTTP 403"]
+    AUTH -->|"role va ACL version hop le"| CACHE["ResponseCache"]
+    CACHE -->|"Cache hit duoc kiem tra quyen"| ANSWER["Tra loi kem trich dan"]
+    CACHE -->|"Cache miss/invalid"| EMBQ["EmbeddingService - query"]
+    EMBQ -->|"Vector cau hoi"| SEARCH["VectorDBConnector - query"]
+    AUTH -->|"allowed_role/ACL scope tu server"| SEARCH
+    SEARCH -->|"SQL/REST - top-k + filter"| STORE
+    STORE -->|"Chunk va source metadata"| SEARCH
+    SEARCH -->|"Khong co nguon hop le"| NORESULT["Khong tim thay tai lieu phu hop"]
+    SEARCH -->|"Co nguon, da kiem tra ACL"| QPII["PIIRedactor - Query"]
+    QPII -->|"Context da xu ly PII"| PROMPT["PromptBuilder"]
+    PROMPT -->|"Prompt + source IDs"| LLM["LocalLLM"]
+    LLM -->|"Ban nhap"| VALIDATE["QueryOrchestrator - kiem tra trich dan"]
+    VALIDATE -->|"Ket qua hop le"| ANSWER
+    VALIDATE -->|"Cache theo user/scope/ACL version"| CACHE
+    ANSWER -->|"HTTPS"| DOCTOR
+    DENIED -->|"HTTPS"| DOCTOR
+    NORESULT -->|"HTTPS"| DOCTOR
+    ORCH -->|"Audit metadata toi thieu"| AUDIT["AuditLogger"]
+    VALIDATE -->|"Audit ket qua"| AUDIT
+  end

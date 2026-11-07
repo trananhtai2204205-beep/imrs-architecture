@@ -1,8 +1,6 @@
-
 sequenceDiagram
     autonumber
-
-    actor Doctor as Bac si
+    actor Doctor
     participant Q as QueryOrchestrator
     participant A as AccessPolicy
     participant C as ResponseCache
@@ -16,67 +14,56 @@ sequenceDiagram
 
     Doctor->>Q: HTTPS - Gui cau hoi
     activate Q
-
-    Q->>A: Kiem tra session va quyen truy xuat
-    activate A
-    A-->>Q: Ket qua xac thuc va scope
-    deactivate A
-
+    Q->>A: Xac minh server session, role, ACL version
+    A-->>Q: Quyen va pham vi hien tai
     alt Khong du quyen
-        Q->>G: Ghi su kien tu choi
+        Q->>G: Ghi su kien tu choi, khong ghi PII
         G-->>Q: Da ghi nhan
         Q-->>Doctor: HTTP 403 - Access denied
-
     else Du quyen
-        Q->>C: Tim cache theo user, scope, phien ban
-        C-->>Q: Cache hit hoac miss
-
-        alt Cache hit va con hop le
+        Q->>C: Lookup theo user/scope/ACL va document version
+        C-->>Q: Cached response hoac cache miss
+        alt Cache hit
+            Q->>A: Tai kiem tra quyen va hieu luc tai lieu trong cache
+            A-->>Q: Ket qua tai xac nhan
+        else Cache miss
+            Note over Q,C: Chuyen sang tim kiem moi
+        end
+        alt Cache hit va van hop le
             Q->>G: Ghi su kien cache hit
             G-->>Q: Da ghi nhan
-            Q-->>Doctor: Cau tra loi co trich dan
-
-        else Cache miss
-            Q->>E: Sinh vector cau hoi
-            activate E
-            E-->>Q: Query embedding
-            deactivate E
-
-            Q->>V: Tim top-k voi allowed_role
-            activate V
-            V->>DB: Vector search + permission filter
-            DB-->>V: Chunks va source metadata
-            V-->>Q: Chunks duoc phep truy xuat
-            deactivate V
-
-            alt Khong co tai lieu phu hop
+            Q-->>Doctor: Cau tra loi cache va trich dan hop le
+        else Cache miss hoac cache khong hop le
+            Q->>E: Tao embedding cua cau hoi
+            E-->>Q: Query vector
+            Q->>V: top-k + allowed_role va ACL tu server
+            V->>DB: Tim kiem co dieu kien quyen
+            DB-->>V: Chunks va document_id/page/version
+            V-->>Q: Chi chunks duoc phep
+            alt Khong tim thay nguon phu hop
                 Q->>G: Ghi su kien khong co ket qua
                 G-->>Q: Da ghi nhan
-                Q-->>Doctor: Khong tim thay nguon phu hop
-
-            else Co tai lieu phu hop
+                Q-->>Doctor: Khong tim thay tai lieu phu hop
+            else Tim thay tai lieu hop le
                 Q->>R: Xu ly PII trong ngu canh
-                R-->>Q: Context da xu ly
-
-                Q->>P: Tao prompt va thong tin nguon
-                P-->>Q: Prompt co trich dan
-
-                Q->>L: Goi LLM noi bo
-                activate L
-                L-->>Q: Cau tra loi du thao
-                deactivate L
-
-                Note over Q: Kiem tra trich dan va quyen
-
-                Q->>C: Luu cache theo scope hop le
-                C-->>Q: Da luu
-
-                Q->>G: Ghi audit khong chua PII
-                G-->>Q: Da ghi nhan
-
-                Q-->>Doctor: Cau tra loi kem trich dan
+                R-->>Q: Context da xu ly PII
+                Q->>P: Tao prompt kem source IDs
+                P-->>Q: Prompt da rang buoc nguon
+                Q->>L: Sinh cau tra loi tren LLM noi bo
+                L-->>Q: Ban nhap cau tra loi
+                Q->>Q: Kiem tra trich dan, ACL va phien ban nguon
+                alt Trich dan khong hop le
+                    Q->>G: Ghi su kien validation failed
+                    G-->>Q: Da ghi nhan
+                    Q-->>Doctor: Khong du nguon de tra loi tin cay
+                else Trich dan hop le
+                    Q->>C: Luu cache theo scope/ACL/document version
+                    C-->>Q: Da ghi nhan
+                    Q->>G: Audit toi thieu, khong luu PII
+                    G-->>Q: Da ghi nhan
+                    Q-->>Doctor: Cau tra loi kem trich dan
+                end
             end
         end
     end
-
     deactivate Q

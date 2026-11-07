@@ -33,16 +33,16 @@ LLM để tổng hợp câu trả lời có trích dẫn.
 - Có cơ chế xử lý thông tin PII.
 
 ## 6. ASR từ Lab 1
-- TTFT: [Điền giá trị trong LAB1_REPORT.md]
-- Bảo mật: [Đối chiếu Lab 1]
-- Khả năng sửa đổi: [Đối chiếu Lab 1]
-- Các ASR khác: [Đối chiếu Lab 1]
+- TTFT: chưa có LAB1_REPORT.md để đối chiếu; không tự đặt con số.
+- Bảo mật: phân quyền theo vai trò và dữ liệu nội bộ theo đề Lab 4; ASR chi tiết Lab 1 chưa được đối chiếu.
+- Khả năng sửa đổi: cần hỗ trợ thay thế embedding theo Lab 4; ASR Lab 1 chưa được đối chiếu.
+- Các ASR khác: chưa được cung cấp từ Lab 1.
 
 ## 7. Thành phần từ Lab 2-3
 - QueryOrchestrator
 - PIIRedactor
 - VectorDBConnector
-- [Kiểm tra tên trong báo cáo Lab 2-3]
+- Chưa có báo cáo Lab 2-3 để xác minh tên thành phần.
 
 ## 8. Giả định cần xác minh
 - PostgreSQL đã được triển khai hay chưa.

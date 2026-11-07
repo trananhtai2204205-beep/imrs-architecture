@@ -22,17 +22,17 @@ Các ràng buộc:
 
 | Mã | Nhóm | Mô tả | Liên quan ASR/ràng buộc Lab 1 | Mức ưu tiên | Nguồn |
 |---|---|---|---|---|---|
-| F01 | Chức năng | Tìm kiếm đoạn phác đồ liên quan | Yêu cầu tra cứu IMRS; cần đối chiếu Lab 1 | Cao | Chưa phân loại |
-| F02 | Chức năng | Trả lời có trích dẫn tài liệu nguồn | Yêu cầu chức năng Lab 4 | Cao | Chưa phân loại |
-| F03 | Chức năng | Nạp, trích xuất và chia đoạn PDF | Phân hệ RAG mới | Cao | Chưa phân loại |
-| Q01 | ASR | Đáp ứng yêu cầu TTFT | ASR hiệu năng Lab 1; chưa có ngưỡng cụ thể | Cao | Chưa phân loại |
-| Q02 | ASR | Phân quyền tài liệu theo vai trò | ASR bảo mật; cần đối chiếu Lab 1 | Rất cao | Chưa phân loại |
-| Q03 | ASR | Có khả năng thay thế mô hình embedding | ASR Modifiability; cần đối chiếu Lab 1 | Cao | Chưa phân loại |
-| Q04 | ASR | Kiểm soát thông tin PII | Ràng buộc bảo mật dữ liệu | Rất cao | Chưa phân loại |
-| C01 | Ràng buộc | Dữ liệu không rời mạng nội bộ | Ràng buộc Lab 1 | Rất cao | Chưa phân loại |
-| C02 | Ràng buộc | Hạ tầng có 1 GPU RTX 4090 | Ràng buộc hạ tầng Lab 1 | Cao | Chưa phân loại |
-| C03 | Ràng buộc | Ngân sách 15.000 USD | Ràng buộc ngân sách Lab 1 | Cao | Chưa phân loại |
-| C04 | Ràng buộc | Thời hạn 4 tháng | Ràng buộc tiến độ Lab 1 | Cao | Chưa phân loại |
+| F01 | Chức năng | Tìm kiếm đoạn phác đồ liên quan | Yêu cầu tra cứu IMRS; cần đối chiếu Lab 1 | Cao | Cần xác nhận nguồn từ lịch sử AI |
+| F02 | Chức năng | Trả lời có trích dẫn tài liệu nguồn | Yêu cầu chức năng Lab 4 | Cao | Cần xác nhận nguồn từ lịch sử AI |
+| F03 | Chức năng | Nạp, trích xuất và chia đoạn PDF | Phân hệ RAG mới | Cao | Cần xác nhận nguồn từ lịch sử AI |
+| Q01 | ASR | Đáp ứng yêu cầu TTFT | ASR hiệu năng Lab 1; chưa có ngưỡng cụ thể | Cao | Cần xác nhận nguồn từ lịch sử AI |
+| Q02 | ASR | Phân quyền tài liệu theo vai trò | ASR bảo mật; cần đối chiếu Lab 1 | Rất cao | Cần xác nhận nguồn từ lịch sử AI |
+| Q03 | ASR | Có khả năng thay thế mô hình embedding | ASR Modifiability; cần đối chiếu Lab 1 | Cao | Cần xác nhận nguồn từ lịch sử AI |
+| Q04 | ASR | Kiểm soát thông tin PII | Ràng buộc bảo mật dữ liệu | Rất cao | Cần xác nhận nguồn từ lịch sử AI |
+| C01 | Ràng buộc | Dữ liệu không rời mạng nội bộ | Ràng buộc Lab 1 | Rất cao | Cần xác nhận nguồn từ lịch sử AI |
+| C02 | Ràng buộc | Hạ tầng có 1 GPU RTX 4090 | Ràng buộc hạ tầng Lab 1 | Cao | Cần xác nhận nguồn từ lịch sử AI |
+| C03 | Ràng buộc | Ngân sách 15.000 USD | Ràng buộc ngân sách Lab 1 | Cao | Cần xác nhận nguồn từ lịch sử AI |
+| C04 | Ràng buộc | Thời hạn 4 tháng | Ràng buộc tiến độ Lab 1 | Cao | Cần xác nhận nguồn từ lịch sử AI |
 
 ### 1.3. Nhận xét
 
@@ -220,12 +220,74 @@ Quyết định cuối cùng cần căn cứ vào hạ tầng
 IMRS hiện có, các ASR của Lab 1 và kết quả
 đánh giá hiệu năng thực tế.
 
-<CodeBlock language="markdown" editable>
+## 4. Truy vết quyết định thiết kế theo drivers
 
+| Quyết định | Drivers liên quan | Lựa chọn đề xuất | Điều kiện chưa xác minh |
+|---|---|---|---|
+| D1 - Vector Store | F01, Q01, Q02, Q03, C01, C03 | Ưu tiên pgvector nội bộ có điều kiện | PostgreSQL hiện có, quyền cài extension, tải thực tế |
+| D2 - Embedding | F01, Q01, Q03, C01, C02 | Embedding đa ngôn ngữ chạy nội bộ | Chất lượng tiếng Việt chuyên ngành, tài nguyên RTX 4090 |
+| D3 - Phân quyền | Q02, Q04, C01 | Pre-filter và AccessPolicy phía máy chủ | Nguồn RBAC/ACL, đồng bộ metadata và cache |
 
-### 5.4. Hình sơ đồ kiến trúc RAG
+## 5. Sơ đồ kiến trúc RAG - Flowchart
+
+### 5.1. Hai luồng kiến trúc
+
+Luồng Ingestion nạp PDF, trích xuất văn bản, chia đoạn, giảm thiểu PII cần thiết, tạo embedding và ghi chunk cùng metadata quyền vào VectorStore. Metadata quyền cần được xác minh từ nguồn nội bộ trước khi ghi chỉ mục.
+
+Luồng Query xác nhận phiên đăng nhập và quyền ở phía máy chủ, chỉ sử dụng cache còn hợp lệ với ACL và phiên bản tài liệu, tìm kiếm top-k theo bộ lọc quyền, xử lý PII trong ngữ cảnh trước khi gọi LocalLLM và kiểm tra trích dẫn trước khi trả kết quả.
+
+### 5.2. Mã Mermaid đã hiệu chỉnh
+
+```mermaid
+flowchart TB
+  subgraph ING["Ingestion - Nap tri thuc noi bo"]
+    PDF["PDF noi bo"] -->|"Doc tai lieu"| PARSER["DocumentParser"]
+    PARSER -->|"Van ban va so trang"| CHUNK["Chunker"]
+    CHUNK -->|"Doan van ban"| IPII["PIIRedactor - Ingestion"]
+    IPII -->|"Chunk da xu ly PII"| EMBI["EmbeddingService"]
+    CHUNK -->|"document_id, page, allowed_role, version"| META["Metadata da kiem tra quyen"]
+    EMBI -->|"Vector"| WRITE["VectorDBConnector"]
+    IPII -->|"Noi dung chunk"| WRITE
+    META -->|"Metadata"| WRITE
+    WRITE -->|"SQL/REST - Luu chi muc"| STORE[("VectorStore noi bo")]
+  end
+
+  subgraph QUERY["Query - Hoi dap co phan quyen"]
+    DOCTOR["Doctor"] -->|"HTTPS - Cau hoi"| ORCH["QueryOrchestrator"]
+    ORCH -->|"Kiem tra session phia may chu"| AUTH["AccessPolicy"]
+    AUTH -->|"Tu choi"| DENIED["HTTP 403"]
+    AUTH -->|"role va ACL version hop le"| CACHE["ResponseCache"]
+    CACHE -->|"Cache hit duoc kiem tra quyen"| ANSWER["Tra loi kem trich dan"]
+    CACHE -->|"Cache miss/invalid"| EMBQ["EmbeddingService - query"]
+    EMBQ -->|"Vector cau hoi"| SEARCH["VectorDBConnector - query"]
+    AUTH -->|"allowed_role/ACL scope tu server"| SEARCH
+    SEARCH -->|"SQL/REST - top-k + filter"| STORE
+    STORE -->|"Chunk va source metadata"| SEARCH
+    SEARCH -->|"Khong co nguon hop le"| NORESULT["Khong tim thay tai lieu phu hop"]
+    SEARCH -->|"Co nguon, da kiem tra ACL"| QPII["PIIRedactor - Query"]
+    QPII -->|"Context da xu ly PII"| PROMPT["PromptBuilder"]
+    PROMPT -->|"Prompt + source IDs"| LLM["LocalLLM"]
+    LLM -->|"Ban nhap"| VALIDATE["QueryOrchestrator - kiem tra trich dan"]
+    VALIDATE -->|"Ket qua hop le"| ANSWER
+    VALIDATE -->|"Cache theo user/scope/ACL version"| CACHE
+    ANSWER -->|"HTTPS"| DOCTOR
+    DENIED -->|"HTTPS"| DOCTOR
+    NORESULT -->|"HTTPS"| DOCTOR
+    ORCH -->|"Audit metadata toi thieu"| AUDIT["AuditLogger"]
+    VALIDATE -->|"Audit ket qua"| AUDIT
+  end
+```
+
+### 5.3. Ảnh sơ đồ
 
 ![RAG Architecture Flowchart](images/rag-flow.png)
+
+**Lưu ý:** Ảnh PNG là bản lưu trước khi hiệu chỉnh mã. Cần xuất lại PNG từ `rag-flow-final.mmd` bằng mermaid.live để đồng bộ hình với mã hiện tại.
+
+### 5.4. Bản gốc để đối chiếu
+
+- `rag-flow-ai-original.mmd`: mã AI ban đầu, lưu nguyên trạng.
+- `rag-flow-final.mmd`: bản đã hiệu chỉnh theo yêu cầu Lab 4.
 
 ## 6. Sequence Diagram - RAG Query
 
@@ -258,9 +320,79 @@ bác sĩ gửi câu hỏi tra cứu phác đồ.
 
 ### 6.4. Mã Mermaid
 
-Mã nguồn được lưu tại:
-- rag-sequence-ai-original.mmd
-- rag-sequence-final.mmd
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Doctor
+    participant Q as QueryOrchestrator
+    participant A as AccessPolicy
+    participant C as ResponseCache
+    participant E as EmbeddingService
+    participant V as VectorDBConnector
+    participant DB as VectorStore
+    participant R as PIIRedactor
+    participant P as PromptBuilder
+    participant L as LocalLLM
+    participant G as AuditLogger
+
+    Doctor->>Q: HTTPS - Gui cau hoi
+    activate Q
+    Q->>A: Xac minh server session, role, ACL version
+    A-->>Q: Quyen va pham vi hien tai
+    alt Khong du quyen
+        Q->>G: Ghi su kien tu choi, khong ghi PII
+        G-->>Q: Da ghi nhan
+        Q-->>Doctor: HTTP 403 - Access denied
+    else Du quyen
+        Q->>C: Lookup theo user/scope/ACL va document version
+        C-->>Q: Cached response hoac cache miss
+        alt Cache hit
+            Q->>A: Tai kiem tra quyen va hieu luc tai lieu trong cache
+            A-->>Q: Ket qua tai xac nhan
+        else Cache miss
+            Note over Q,C: Chuyen sang tim kiem moi
+        end
+        alt Cache hit va van hop le
+            Q->>G: Ghi su kien cache hit
+            G-->>Q: Da ghi nhan
+            Q-->>Doctor: Cau tra loi cache va trich dan hop le
+        else Cache miss hoac cache khong hop le
+            Q->>E: Tao embedding cua cau hoi
+            E-->>Q: Query vector
+            Q->>V: top-k + allowed_role va ACL tu server
+            V->>DB: Tim kiem co dieu kien quyen
+            DB-->>V: Chunks va document_id/page/version
+            V-->>Q: Chi chunks duoc phep
+            alt Khong tim thay nguon phu hop
+                Q->>G: Ghi su kien khong co ket qua
+                G-->>Q: Da ghi nhan
+                Q-->>Doctor: Khong tim thay tai lieu phu hop
+            else Tim thay tai lieu hop le
+                Q->>R: Xu ly PII trong ngu canh
+                R-->>Q: Context da xu ly PII
+                Q->>P: Tao prompt kem source IDs
+                P-->>Q: Prompt da rang buoc nguon
+                Q->>L: Sinh cau tra loi tren LLM noi bo
+                L-->>Q: Ban nhap cau tra loi
+                Q->>Q: Kiem tra trich dan, ACL va phien ban nguon
+                alt Trich dan khong hop le
+                    Q->>G: Ghi su kien validation failed
+                    G-->>Q: Da ghi nhan
+                    Q-->>Doctor: Khong du nguon de tra loi tin cay
+                else Trich dan hop le
+                    Q->>C: Luu cache theo scope/ACL/document version
+                    C-->>Q: Da ghi nhan
+                    Q->>G: Audit toi thieu, khong luu PII
+                    G-->>Q: Da ghi nhan
+                    Q-->>Doctor: Cau tra loi kem trich dan
+                end
+            end
+        end
+    end
+    deactivate Q
+```
+
+Mã nguồn: `rag-sequence-final.mmd`. Ảnh PNG cần xuất lại từ mã này sau khi kiểm tra trên mermaid.live. Tệp `rag-sequence-ai-original.mmd` trong bản nộp ban đầu trống; không được xem đây là bằng chứng đầu ra AI nguyên gốc.
 
 ### 6.5. Nhận xét
 
@@ -295,22 +427,29 @@ Các tiêu chí kiểm tra gồm:
 - Các mũi tên có nhãn hành động hoặc giao thức.
 - Có nhánh xử lý khi không tìm thấy tài liệu.
 
-### 7.2. Bảng lỗi và chỉnh sửa
+### 7.2. Bảng đối chiếu và vấn đề đã phát hiện khi rà soát tệp
 
-| STT | Sơ đồ | Lỗi hoặc thiếu sót thực tế | Cách chỉnh sửa | Kết quả |
+| STT | Tệp | Vấn đề quan sát được | Cách hiệu chỉnh | Tình trạng |
 |---|---|---|---|---|
-| 1 | Flowchart | [Điền sau kiểm tra] | [Điền thay đổi thực tế] | [Kết quả] |
-| 2 | Flowchart | [Điền sau kiểm tra] | [Điền thay đổi thực tế] | [Kết quả] |
-| 3 | Sequence | [Điền sau kiểm tra] | [Điền thay đổi thực tế] | [Kết quả] |
-| 4 | Sequence | [Điền sau kiểm tra] | [Điền thay đổi thực tế] | [Kết quả] |
+| 1 | `rag-flow-ai-original.mmd` -> `rag-flow-final.mmd` | Bản AI gốc gửi từ AccessPolicy sang cache, chưa biểu diễn rõ nhánh từ chối truy cập | Thêm nhánh từ chối và phản hồi đến Doctor | Đã sửa trong mã cuối |
+| 2 | `rag-flow-ai-original.mmd` -> `rag-flow-final.mmd` | Bản gốc không có nhánh không tìm thấy tài liệu | Bổ sung nhánh No Results | Đã sửa trong mã cuối |
+| 3 | `rag-flow-final.mmd` | Bản cuối cũ chưa thể hiện bước PIIRedactor trong ingestion | Bổ sung bước giảm thiểu PII trước khi tạo embedding | Đã sửa trong mã cuối |
+| 4 | `rag-sequence-ai-original.mmd` | Tệp AI gốc rỗng, không thể chứng minh quá trình sửa từ AI gốc | Giữ nguyên tệp rỗng, yêu cầu khôi phục lịch sử nếu còn | **Chưa khắc phục bằng chứng** |
+| 5 | `LAB4_RAG_DESIGN.md` | Mục 5 bị mất và có thẻ `<CodeBlock>` không hợp lệ | Chèn mục 4, mục 5 và khối `mermaid` hợp lệ | Đã sửa |
+| 6 | Các PNG | Hình ảnh được xuất từ phiên bản sơ đồ trước đây | Xuất lại hình từ mã Mermaid cuối | **Cần thao tác thủ công** |
+
+### 7.2.1. Điểm cần phân biệt về nguồn lỗi
+
+Bảng trên mô tả vấn đề được xác nhận khi so sánh các **tệp lưu trong ZIP**, không tự khẳng định tất cả là lỗi do AI. Phần đánh giá của sinh viên phải ghi rõ vấn đề nào xuất hiện trong phản hồi AI ban đầu và vấn đề nào do thao tác sao chép/chỉnh sửa hoặc quản lý tệp.
 
 ### 7.3. Kết luận
 
 Phiên bản sơ đồ cuối cùng được rà soát theo
 các yêu cầu chức năng, ASR và ràng buộc của IMRS.
 
-Mọi chỉnh sửa thực tế được ghi nhận trong
-bảng trên và nhật ký AI_LOG.md.
+Các chỉnh sửa xác nhận được ghi trong bảng trên.
+Những tương tác chưa có bằng chứng phải được kiểm tra lại
+trong AI_LOG.md trước khi nộp.
 
 ## 8. Tổng kết và quyết định kiến trúc
 
